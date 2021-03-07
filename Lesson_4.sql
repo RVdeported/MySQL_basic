@@ -1,5 +1,5 @@
-USE vk;
--- i. Заполнить все таблицы БД vk данными (по 10-100 записей в каждой таблице)
+п»їUSE vk;
+-- i. Р—Р°РїРѕР»РЅРёС‚СЊ РІСЃРµ С‚Р°Р±Р»РёС†С‹ Р‘Р” vk РґР°РЅРЅС‹РјРё (РїРѕ 10-100 Р·Р°РїРёСЃРµР№ РІ РєР°Р¶РґРѕР№ С‚Р°Р±Р»РёС†Рµ)
 -- MariaDB dump 10.17  Distrib 10.4.15-MariaDB, for Linux (x86_64)
 --
 -- Host: mysql.hostinger.ro    Database: u574849695_20
@@ -289,7 +289,7 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `firstname` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `lastname` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Фамиль',
+  `lastname` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Р¤Р°РјРёР»СЊ',
   `email` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_hash` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `phone` bigint(20) unsigned DEFAULT NULL,
@@ -297,7 +297,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `phone` (`phone`),
   KEY `users_firstname_lastname_idx` (`firstname`,`lastname`)
-) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='юзеры';
+) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='СЋР·РµСЂС‹';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -350,13 +350,13 @@ UNLOCK TABLES;
 
 
 -- ======================
--- ii. Написать скрипт, возвращающий список имен (только firstname) пользователей без повторений в алфавитном порядке
+-- ii. РќР°РїРёСЃР°С‚СЊ СЃРєСЂРёРїС‚, РІРѕР·РІСЂР°С‰Р°СЋС‰РёР№ СЃРїРёСЃРѕРє РёРјРµРЅ (С‚РѕР»СЊРєРѕ firstname) РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ Р±РµР· РїРѕРІС‚РѕСЂРµРЅРёР№ РІ Р°Р»С„Р°РІРёС‚РЅРѕРј РїРѕСЂСЏРґРєРµ
 
 SELECT DISTINCT `firstname` FROM users 
 ORDER BY firstname ASC;
 
 -- ======================
--- iii. Написать скрипт, отмечающий несовершеннолетних пользователей как неактивных (поле is_active = false). Предварительно добавить такое поле в таблицу profiles со значением по умолчанию = true (или 1)
+-- iii. РќР°РїРёСЃР°С‚СЊ СЃРєСЂРёРїС‚, РѕС‚РјРµС‡Р°СЋС‰РёР№ РЅРµСЃРѕРІРµСЂС€РµРЅРЅРѕР»РµС‚РЅРёС… РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ РєР°Рє РЅРµР°РєС‚РёРІРЅС‹С… (РїРѕР»Рµ is_active = false). РџСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕ РґРѕР±Р°РІРёС‚СЊ С‚Р°РєРѕРµ РїРѕР»Рµ РІ С‚Р°Р±Р»РёС†Сѓ profiles СЃРѕ Р·РЅР°С‡РµРЅРёРµРј РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ = true (РёР»Рё 1)
 
 ALTER TABLE profiles
 ADD is_active BIT DEFAULT 1;
@@ -366,7 +366,7 @@ SET is_active = 0
 WHERE birthday > '20030101';
 
 -- ======================
--- iv. Написать скрипт, удаляющий сообщения «из будущего» (дата больше сегодняшней)
+-- iv. РќР°РїРёСЃР°С‚СЊ СЃРєСЂРёРїС‚, СѓРґР°Р»СЏСЋС‰РёР№ СЃРѕРѕР±С‰РµРЅРёСЏ В«РёР· Р±СѓРґСѓС‰РµРіРѕВ» (РґР°С‚Р° Р±РѕР»СЊС€Рµ СЃРµРіРѕРґРЅСЏС€РЅРµР№)
 
 -- Setting few Future messages
 UPDATE messages
