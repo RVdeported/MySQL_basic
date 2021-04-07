@@ -1,3 +1,16 @@
+/*
+The databae contains information about football clubs, championships, transfers, participants
+and general games statistics. It designed to be able to recreate clubs' stuff or statictics 
+at any recorded moment.
+A few things to be improved:
+1) Championhips' table calculations is way to slow. It's better to create additional table with
+trigger updates teams' scores for given season (similar as with club_staff table)
+2) There is lack of logical constrains like "contract_end date have to be later than contract_start"
+3) There is non consistent approach in participants' position determination:
+preffered_position column shows usual position, but in fact players often play on non-preffered positions.
+It is better to include some statistics of the most played position of a player in his current club (using game_participants.position column)
+*/
+
 use football;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -261,44 +274,50 @@ INSERT INTO `game_participants` VALUES (1,70,'',1,'CD',1,1,2,28,'1988-08-31 02:
 /*!40000 ALTER TABLE `game_participants` ENABLE KEYS */;
 UNLOCK TABLES;
 
+-- few input corrections
+SET SQL_SAFE_UPDATES = 0;
 update games SET result = 0 where id < 45;
 update games SET result = 2 where id > 55;
 update games SET result = 1 where id > 45 and id < 55;
+update transfers SET 
+	transfer_to = RAND(10)*10,
+	transfer_amount = RAND(40)*1000000;
+SET SQL_SAFE_UPDATES = 1;
 
-
+-- procedure of championship standings calculations
 DROP PROCEDURE IF EXISTS championsip_table;
 DELIMITER //
-CREATE PROCEDURE championsip_table (IN year SMALLINT)
+CREATE PROCEDURE championsip_table (IN `year` SMALLINT UNSIGNED, `championship` BIGINT UNSIGNED)
 BEGIN
 SELECT 
-	football_clubs.name,
+	football_clubs.name as 'Team',
     (SELECT COUNT(*) FROM games 
-		WHERE championship_id = 1 and
-        year(date) = 2015 and
+		WHERE championship_id = `championship` and
+        year(date) = `year` and
         (
 			(club_first_id = football_clubs.id) or
 			(club_second_id = football_clubs.id)
 		)
 	) as 'total matches',
     (SELECT COUNT(*) FROM games
-		where championship_id = 1 and
-        year(date) = 2015 and 
+		where championship_id = `championship` and
+        year(date) = `year` and 
         (
 			(club_first_id = football_clubs.id and result = 0) or
             (club_second_id = football_clubs.id and result = 2)
 		)
 	) as 'W',
     (SELECT COUNT(*) FROM games
-		where championship_id = 1 and
-        year(date) = 2015 and 
+		where championship_id = `championship` and
+        year(date) = `year` and 
         (
 			(club_first_id = football_clubs.id and result = 1) or
             (club_second_id = football_clubs.id and result = 1)
 		)
 	) as 'D',
 	(SELECT COUNT(*) FROM games
-		where championship_id = 1 and
-        year(date) = 2015 and 
+		where championship_id = `championship` and
+        year(date) = `year` and 
         (
 			(club_first_id = football_clubs.id and result = 2) or
             (club_second_id = football_clubs.id and result = 0)
@@ -313,7 +332,46 @@ END
 //
 DELIMITER ;
 
-CALL championsip_table(2015);
+CALL championsip_table(2015,1);
+
+-- top scorers view
+CREATE OR REPLACE VIEW top_scorers AS
+SELECT 
+	CONCAT(first_name, " ", second_name) AS `Name`,
+    SUM(game_participants.scored_goals) AS Goals,
+    SUM(game_participants.assisted_goals) AS Assisted
+FROM participants
+LEFT JOIN game_participants ON participants.id = game_participants.player_id
+GROUP BY `Name`
+ORDER BY Goals DESC, Assisted DESC;
+
+SELECT * FROM top_scorers;
+
+-- top transfers_view
+CREATE OR REPLACE VIEW transfers_view AS
+SELECT 
+	CONCAT(participants.first_name, " ", participants.second_name) AS `Name`,
+	f1.name AS Club_from,
+    f2.name AS Club_to,
+    transfer_amount,
+    contract_start
+FROM transfers
+LEFT JOIN football_clubs AS f1 ON f1.id = transfer_from
+LEFT JOIN football_clubs AS f2 ON f2.id = transfer_to
+LEFT JOIN participants ON participants.id = transfers.player_id
+GROUP BY `Name`
+ORDER BY transfer_amount DESC;
+
+SELECT * FROM transfers_view;
+
+-- sample query: club with id 1 members
+SET @club_id = 1;
+SELECT 
+	CONCAT(participants.first_name, " ", participants.second_name) AS `Name`,
+    participants.preffered_position
+FROM club_stuff
+LEFT JOIN participants ON participants.id = club_stuff.participant_id
+WHERE club_stuff.club_id = @club_id AND club_stuff.period_end IS NULL;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
